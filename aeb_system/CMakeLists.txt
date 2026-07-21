@@ -9,13 +9,14 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 
 # ==============================================================================
 add_executable(radar_node src/radar_node.cpp)
-ament_target_dependencies(radar_node rclcpp std_msgs)
+ament_target_dependencies(radar_node rclcpp std_msgs geometry_msgs)
 
 add_executable(aeb_node src/aeb_node.cpp)
-ament_target_dependencies(aeb_node rclcpp std_msgs)
+ament_target_dependencies(aeb_node rclcpp std_msgs geometry_msgs)
 
 install(TARGETS
   radar_node

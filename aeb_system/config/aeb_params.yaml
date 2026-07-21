@@ -1,0 +1,22 @@
+car_node:
+  ros__parameters:
+    initial_pos_car: 0.0
+    initial_spe_car: 30.0
+    deceleration: -6.5
+    timer_period: 0.1
+    length: 4.0
+    width: 2.0
+    height: 1.5
+
+aeb_node:
+  ros__parameters:
+    ttc_threshold: 2.7
+
+obstacle_node:
+  ros__parameters:
+    initial_pos_obstacle: 100.0
+    initial_spe_obstacle: 0.0
+    timer_period: 0.1
+    length: 4.0
+    width: 2.0
+    height: 1.5
