@@ -1,41 +1,51 @@
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
+#include "std_msgs/msg/bool.hpp"
 
 class AebNode : public rclcpp::Node{
 private:
 
     rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr subscriber_;
-    double ttc_threshold_ = this->declare_parameter<double>("ttc_threshold", 2.7);
+    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr aeb_pub_;
+    double ttc_threshold_;
 
 public:
     AebNode(): Node("aeb_node"){
+        this->declare_parameter<double>("ttc_threshold", 2.7);
+        this->ttc_threshold_ = this->get_parameter("ttc_threshold").as_double();
+
         RCLCPP_INFO(this->get_logger(), "AEB Node has been started.");
+
         this->subscriber_ = this->create_subscription<geometry_msgs::msg::Vector3>(
-            "radar_data",
+            "sensor_data",
             10,
             std::bind(&AebNode::distance_callback, this, std::placeholders::_1)
         );
+
+        this->aeb_pub_ = this->create_publisher<std_msgs::msg::Bool>("aeb_status", 10);
     };
 
     void distance_callback(const geometry_msgs::msg::Vector3::SharedPtr msg) {
         float distance = msg->x;
         float relative_speed = msg->y;
 
+        std_msgs::msg::Bool aeb_msg;
+        aeb_msg.data = false;
+
         if (relative_speed >= 0) {
-            RCLCPP_INFO(this->get_logger(), "Relative speed is zero or negative, no collision expected.");
+            this->aeb_pub_->publish(aeb_msg);
             return;
         }
-        RCLCPP_INFO(this->get_logger(), "Received distance: %.2f", distance);
-        RCLCPP_INFO(this->get_logger(), "Received relative speed: %.2f", relative_speed);
 
         float closing_speed = -relative_speed;
         float time_to_collision = distance / closing_speed;
 
-        RCLCPP_INFO(this->get_logger(), "Time to collision: %.2f", time_to_collision);
 
         if (time_to_collision <= this->ttc_threshold_) {
             RCLCPP_ERROR(this->get_logger(), "Collision imminent, activating brakes!");
+            aeb_msg.data = true;
         }
+        this->aeb_pub_->publish(aeb_msg);
     };
 
 };
